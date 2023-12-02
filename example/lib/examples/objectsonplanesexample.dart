@@ -15,15 +15,15 @@ import 'package:vector_math/vector_math_64.dart';
 import 'dart:math';
 
 class ObjectsOnPlanesWidget extends StatefulWidget {
-  ObjectsOnPlanesWidget({Key key}) : super(key: key);
+  ObjectsOnPlanesWidget({Key? key}) : super(key: key);
   @override
   _ObjectsOnPlanesWidgetState createState() => _ObjectsOnPlanesWidgetState();
 }
 
 class _ObjectsOnPlanesWidgetState extends State<ObjectsOnPlanesWidget> {
-  ARSessionManager arSessionManager;
-  ARObjectManager arObjectManager;
-  ARAnchorManager arAnchorManager;
+  late ARSessionManager arSessionManager;
+  late ARObjectManager arObjectManager;
+  late ARAnchorManager arAnchorManager;
 
   List<ARNode> nodes = [];
   List<ARAnchor> anchors = [];
@@ -102,8 +102,8 @@ class _ObjectsOnPlanesWidgetState extends State<ObjectsOnPlanesWidget> {
     if (singleHitTestResult != null) {
       var newAnchor =
           ARPlaneAnchor(transformation: singleHitTestResult.worldTransform);
-      bool didAddAnchor = await this.arAnchorManager.addAnchor(newAnchor);
-      if (didAddAnchor) {
+      bool? didAddAnchor = await this.arAnchorManager.addAnchor(newAnchor);
+      if (didAddAnchor ?? false) {
         this.anchors.add(newAnchor);
         // Add note to anchor
         var newNode = ARNode(
@@ -113,9 +113,9 @@ class _ObjectsOnPlanesWidgetState extends State<ObjectsOnPlanesWidget> {
             scale: Vector3(0.2, 0.2, 0.2),
             position: Vector3(0.0, 0.0, 0.0),
             rotation: Vector4(1.0, 0.0, 0.0, 0.0));
-        bool didAddNodeToAnchor =
+        bool? didAddNodeToAnchor =
             await this.arObjectManager.addNode(newNode, planeAnchor: newAnchor);
-        if (didAddNodeToAnchor) {
+        if (didAddNodeToAnchor ?? false) {
           this.nodes.add(newNode);
         } else {
           this.arSessionManager.onError("Adding Node to Anchor failed");

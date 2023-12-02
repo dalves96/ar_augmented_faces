@@ -19,7 +19,7 @@ import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 
 class ExternalModelManagementWidget extends StatefulWidget {
-  ExternalModelManagementWidget({Key key}) : super(key: key);
+  ExternalModelManagementWidget({Key? key}) : super(key: key);
   @override
   _ExternalModelManagementWidgetState createState() =>
       _ExternalModelManagementWidgetState();
@@ -33,10 +33,10 @@ class _ExternalModelManagementWidgetState
   FirebaseManager firebaseManager = FirebaseManager();
   Map<String, Map> anchorsInDownloadProgress = Map<String, Map>();
 
-  ARSessionManager arSessionManager;
-  ARObjectManager arObjectManager;
-  ARAnchorManager arAnchorManager;
-  ARLocationManager arLocationManager;
+  late ARSessionManager arSessionManager;
+  late ARObjectManager arObjectManager;
+  late ARAnchorManager arAnchorManager;
+  late ARLocationManager arLocationManager;
 
   List<ARNode> nodes = [];
   List<ARAnchor> anchors = [];
@@ -260,7 +260,7 @@ class _ExternalModelManagementWidgetState
   Future<void> onNodeTapped(List<String> nodeNames) async {
     var foregroundNode =
         nodes.firstWhere((element) => element.name == nodeNames.first);
-    this.arSessionManager.onError(foregroundNode.data["onTapText"]);
+    this.arSessionManager.onError(foregroundNode.data?["onTapText"]);
   }
 
   Future<void> onPlaneOrPointTapped(
@@ -270,8 +270,8 @@ class _ExternalModelManagementWidgetState
     if (singleHitTestResult != null) {
       var newAnchor = ARPlaneAnchor(
           transformation: singleHitTestResult.worldTransform, ttl: 2);
-      bool didAddAnchor = await this.arAnchorManager.addAnchor(newAnchor);
-      if (didAddAnchor) {
+      bool? didAddAnchor = await this.arAnchorManager.addAnchor(newAnchor);
+      if (didAddAnchor ?? false) {
         this.anchors.add(newAnchor);
         // Add note to anchor
         var newNode = ARNode(
@@ -281,9 +281,9 @@ class _ExternalModelManagementWidgetState
             position: VectorMath.Vector3(0.0, 0.0, 0.0),
             rotation: VectorMath.Vector4(1.0, 0.0, 0.0, 0.0),
             data: {"onTapText": "I am a " + this.selectedModel.name});
-        bool didAddNodeToAnchor =
+        bool? didAddNodeToAnchor =
             await this.arObjectManager.addNode(newNode, planeAnchor: newAnchor);
-        if (didAddNodeToAnchor) {
+        if (didAddNodeToAnchor ?? false) {
           this.nodes.add(newNode);
           setState(() {
             readyToUpload = true;
@@ -322,14 +322,14 @@ class _ExternalModelManagementWidgetState
 
   ARAnchor onAnchorDownloaded(Map<String, dynamic> serializedAnchor) {
     final anchor = ARPlaneAnchor.fromJson(
-        anchorsInDownloadProgress[serializedAnchor["cloudanchorid"]]);
+        anchorsInDownloadProgress[serializedAnchor["cloudanchorid"]] as Map<String, Map>);
     anchorsInDownloadProgress.remove(anchor.cloudanchorid);
     this.anchors.add(anchor);
 
     // Download nodes attached to this anchor
     firebaseManager.getObjectsFromAnchor(anchor, (snapshot) {
       snapshot.docs.forEach((objectDoc) {
-        ARNode object = ARNode.fromMap(objectDoc.data());
+        ARNode object = ARNode.fromMap(objectDoc.data() as Map<String,dynamic>);
         arObjectManager.addNode(object, planeAnchor: anchor);
         this.nodes.add(object);
       });
@@ -350,7 +350,7 @@ class _ExternalModelManagementWidgetState
     if (this.arLocationManager.currentLocation != null) {
       firebaseManager.downloadAnchorsByLocation((snapshot) {
         final cloudAnchorId = snapshot.get("cloudanchorid");
-        anchorsInDownloadProgress[cloudAnchorId] = snapshot.data();
+        anchorsInDownloadProgress[cloudAnchorId] = snapshot.data() as Map;
         arAnchorManager.downloadAnchor(cloudAnchorId);
       }, this.arLocationManager.currentLocation, 0.1);
       setState(() {
@@ -406,11 +406,11 @@ typedef FirebaseDocumentStreamListener = void Function(
     DocumentSnapshot snapshot);
 
 class FirebaseManager {
-  FirebaseFirestore firestore;
-  Geoflutterfire geo;
-  CollectionReference anchorCollection;
-  CollectionReference objectCollection;
-  CollectionReference modelCollection;
+  FirebaseFirestore? firestore;
+  late Geoflutterfire geo;
+  late CollectionReference anchorCollection;
+  late CollectionReference objectCollection;
+  late CollectionReference modelCollection;
 
   // Firebase initialization function
   Future<bool> initializeFlutterFire() async {
@@ -428,7 +428,7 @@ class FirebaseManager {
     }
   }
 
-  void uploadAnchor(ARAnchor anchor, {Position currentLocation}) {
+  void uploadAnchor(ARAnchor anchor, {Position? currentLocation}) {
     if (firestore == null) return;
 
     var serializedAnchor = anchor.toJson();
@@ -536,7 +536,7 @@ class ModelSelectionWidget extends StatefulWidget {
   final Function onTap;
   final FirebaseManager firebaseManager;
 
-  ModelSelectionWidget({this.onTap, this.firebaseManager});
+  ModelSelectionWidget({required this.onTap, required this.firebaseManager});
 
   @override
   _ModelSelectionWidgetState createState() => _ModelSelectionWidgetState();
@@ -545,7 +545,7 @@ class ModelSelectionWidget extends StatefulWidget {
 class _ModelSelectionWidgetState extends State<ModelSelectionWidget> {
   List<AvailableModel> models = [];
 
-  String selected;
+  String? selected;
 
   @override
   void initState() {

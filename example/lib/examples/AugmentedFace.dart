@@ -10,14 +10,14 @@ import 'package:ar_augmented_faces/datatypes/config_planedetection.dart';
 import 'package:flutter/services.dart';
 
 class AugmentedFace extends StatefulWidget {
-  AugmentedFace({Key key}) : super(key: key);
+  AugmentedFace({Key? key}) : super(key: key);
   @override
   _AugmentedFaceState createState() => _AugmentedFaceState();
 }
 
 class _AugmentedFaceState extends State<AugmentedFace> {
-  ARSessionManager arSessionManager;
-  ARObjectManager arObjectManager;
+  late ARSessionManager arSessionManager;
+  late ARObjectManager arObjectManager;
   bool _showFeaturePoints = false;
   bool _showPlanes = false;
   bool _showWorldOrigin = false;
