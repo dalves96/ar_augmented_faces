@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 /// Can be used to get the current location of the device, update it and handle location permissions
@@ -20,28 +22,32 @@ class ARLocationManager {
       return Future.error('Location services disabled');
     }
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+    if (!platWeb) {
+      permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        // Permissions are denied, next time you could try
-        // requesting permissions again (this is also where
-        // Android's shouldShowRequestPermissionRationale
-        // returned true. According to Android guidelines
-        // your App should show an explanatory UI now.
-        return Future.error('Location permissions denied');
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          // Permissions are denied, next time you could try
+          // requesting permissions again (this is also where
+          // Android's shouldShowRequestPermissionRationale
+          // returned true. According to Android guidelines
+          // your App should show an explanatory UI now.
+          return Future.error('Location permissions denied');
+        }
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
-      return Future.error('Location permissions permanently denied');
+      if (permission == LocationPermission.deniedForever) {
+        // Permissions are denied forever, handle appropriately.
+        return Future.error('Location permissions permanently denied');
+      }
     }
 
     // When we reach here, permissions are granted and we can
     // continue accessing the last known position of the device.
     return await Geolocator.getLastKnownPosition();
   }
+
+  bool platWeb = kIsWeb || !Platform.isAndroid && !Platform.isIOS;
 
   /// Starts high precision location updates to keep track of the device's position. Returns true or an error, if permissions don't suffice. Automatically queries user permission if possible
   Future<bool> startLocationUpdates() async {
@@ -57,33 +63,35 @@ class ARLocationManager {
       return Future.error('Location services disabled');
     }
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+    if (!platWeb) {
+      permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        // Permissions are denied, next time you could try
-        // requesting permissions again (this is also where
-        // Android's shouldShowRequestPermissionRationale
-        // returned true. According to Android guidelines
-        // your App should show an explanatory UI now.
-        return Future.error('Location permissions denied');
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          // Permissions are denied, next time you could try
+          // requesting permissions again (this is also where
+          // Android's shouldShowRequestPermissionRationale
+          // returned true. According to Android guidelines
+          // your App should show an explanatory UI now.
+          return Future.error('Location permissions denied');
+        }
       }
+
+      if (permission == LocationPermission.deniedForever) {
+        // Permissions are denied forever, handle appropriately.
+        return Future.error('Location permissions permanently denied');
+      }
+
+      // When we reach here, permissions are granted and we can
+      // continue accessing the position of the device.
+      locationStream = Geolocator.getPositionStream(
+              locationSettings:
+                  LocationSettings(accuracy: LocationAccuracy.high))
+          .listen((Position position) {
+        //print(position.latitude.toString() + ', ' + position.longitude.toString());
+        currentLocation = position;
+      });
     }
-
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
-      return Future.error('Location permissions permanently denied');
-    }
-
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
-    locationStream =
-        Geolocator.getPositionStream(locationSettings: LocationSettings(accuracy: LocationAccuracy.high))
-            .listen((Position position) {
-      //print(position.latitude.toString() + ', ' + position.longitude.toString());
-      currentLocation = position;
-    });
-
     return true;
   }
 

@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
   permission_handler: ^11.3.1
   json_annotation: ^4.9.0
-  geolocator: ^12.0.0
+  geolocator: ^13.0.2
 #  geolocator_web: ^4.0.0
 
 dev_dependencies:
